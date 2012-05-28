@@ -1,6 +1,6 @@
 package pntanasis.android.metronome;
 
-import pntanasis.master_ex.android.R;
+import pntanasis.android.metronome.R;
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
