@@ -1,5 +1,8 @@
 package pntanasis.android.metronome;
 
+import android.os.Handler;
+import android.os.Message;
+
 public class Metronome {
 	
 	private double bpm;
@@ -14,13 +17,21 @@ public class Metronome {
 	private boolean play = true;
 	
 	private AudioGenerator audioGenerator = new AudioGenerator(8000);
+	private Handler mHandler;
+	private double[] soundArray;
+	private Message msg;
+	private int currentBeat = 1;
 	
-	public Metronome() {
+	public Metronome(Handler handler) {
 		audioGenerator.createPlayer();
+		this.mHandler = handler;
 	}
 	
 	public void calcSilence() {
 		silence = (int) (((60/bpm)*8000)-tick);		
+		soundArray = new double[this.tick+this.silence];
+		msg = new Message();
+		msg.obj = ""+currentBeat;
 	}
 	
 	public void play() {
@@ -28,18 +39,17 @@ public class Metronome {
 		double[] tick = audioGenerator.getSineWave(this.tick, 8000, beatSound);
 		double[] tock = audioGenerator.getSineWave(this.tick, 8000, sound);
 		double silence = 0;
-		double[] sound = new double[8000];
 		int t = 0,s = 0,b = 0;
 		do {
-			for(int i=0;i<sound.length&&play;i++) {
+			for(int i=0;i<soundArray.length&&play;i++) {
 				if(t<this.tick) {
 					if(b == 0)
-						sound[i] = tock[t];
+						soundArray[i] = tock[t];
 					else
-						sound[i] = tick[t];
+						soundArray[i] = tick[t];
 					t++;
 				} else {
-					sound[i] = silence;
+					soundArray[i] = silence;
 					s++;
 					if(s >= this.silence) {
 						t = 0;
@@ -50,7 +60,16 @@ public class Metronome {
 					}						
 				}
 			}
-			audioGenerator.writeSound(sound);
+			msg = new Message();
+			msg.obj = ""+currentBeat;
+			if(bpm < 100)
+				mHandler.sendMessage(msg);
+			audioGenerator.writeSound(soundArray);
+			if(bpm >= 100)
+				mHandler.sendMessage(msg);
+			currentBeat++;
+			if(currentBeat > beat)
+				currentBeat = 1;
 		} while(play);
 	}
 	

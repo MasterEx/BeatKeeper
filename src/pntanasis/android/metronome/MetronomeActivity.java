@@ -3,9 +3,12 @@ package pntanasis.android.metronome;
 import pntanasis.android.metronome.R;
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
@@ -31,10 +34,23 @@ public class MetronomeActivity extends Activity {
 	private double beatSound = 2440;
 	private double sound = 6440;
 	private AudioManager audio;
-    private MetronomeAsyncTask metroTask = new MetronomeAsyncTask();
+    private MetronomeAsyncTask metroTask;
     
     private Button plusButton;
     private Button minusButton;
+    private TextView currentBeat;
+    
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+        	String message = (String)msg.obj;
+        	if(message.equals("1"))
+        		currentBeat.setTextColor(Color.GREEN);
+        	else
+        		currentBeat.setTextColor(getResources().getColor(R.color.yellow));
+        	currentBeat.setText(message);
+        }
+    };
 	
     /** Called when the activity is first created. */
     @Override
@@ -42,6 +58,7 @@ public class MetronomeActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
 
+        metroTask = new MetronomeAsyncTask(mHandler);
         /* Set values and listeners to buttons and stuff */
         
         TextView bpmText = (TextView) findViewById(R.id.bps);
@@ -55,6 +72,9 @@ public class MetronomeActivity extends Activity {
         
         minusButton = (Button) findViewById(R.id.minus);
         minusButton.setOnLongClickListener(minusListener);
+        
+        currentBeat = (TextView) findViewById(R.id.currentBeat);
+        currentBeat.setTextColor(Color.GREEN);
         
         Spinner beatSpinner = (Spinner) findViewById(R.id.beatspinner);
         ArrayAdapter<Beats> arrayBeats =
@@ -93,7 +113,7 @@ public class MetronomeActivity extends Activity {
     	} else {
     		button.setText(R.string.start);    	
     		metroTask.stop();
-    		metroTask = new MetronomeAsyncTask();
+    		metroTask = new MetronomeAsyncTask(mHandler);
     	}
     }
     
@@ -248,7 +268,11 @@ public class MetronomeActivity extends Activity {
     }
     
     private class MetronomeAsyncTask extends AsyncTask<Void,Void,String> {
-    	Metronome metronome = new Metronome();;
+    	Metronome metronome;
+    	
+    	MetronomeAsyncTask(Handler mHandler) {
+    		metronome = new Metronome(mHandler);
+    	}
 
 		protected String doInBackground(Void... params) {
 			
@@ -265,7 +289,7 @@ public class MetronomeActivity extends Activity {
 		
 		public void stop() {
 			metronome.stop();
-			metronome = new Metronome();
+			metronome = new Metronome(mHandler);
 		}
 		
 		public void setBpm(short bpm) {

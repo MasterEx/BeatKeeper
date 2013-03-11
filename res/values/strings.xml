@@ -11,5 +11,6 @@
     <string name="dash">/</string>
     <string name="volume">volume</string>
     <color name="black">#000000</color>
+    <string name="one">1</string>
 
 </resources>
