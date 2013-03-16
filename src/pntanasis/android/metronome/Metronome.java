@@ -19,6 +19,7 @@ public class Metronome {
 	private AudioGenerator audioGenerator = new AudioGenerator(8000);
 	private Handler mHandler;
 	private double[] soundArray;
+	private double[] silenceSoundArray;
 	private Message msg;
 	private int currentBeat = 1;
 	
@@ -29,7 +30,8 @@ public class Metronome {
 	
 	public void calcSilence() {
 		silence = (int) (((60/bpm)*8000)-tick);		
-		soundArray = new double[this.tick+this.silence];
+		soundArray = new double[this.tick];
+		silenceSoundArray = new double[this.silence];
 		msg = new Message();
 		msg.obj = ""+currentBeat;
 	}
@@ -41,7 +43,7 @@ public class Metronome {
 		double silence = 0;
 		int t = 0,s = 0,b = 0;
 		do {
-			for(int i=0;i<soundArray.length&&play;i++) {
+			for(int i=0;i<soundArray.length+silenceSoundArray.length&&play;i++) {
 				if(t<this.tick) {
 					if(b == 0)
 						soundArray[i] = tock[t];
@@ -49,7 +51,7 @@ public class Metronome {
 						soundArray[i] = tick[t];
 					t++;
 				} else {
-					soundArray[i] = silence;
+					silenceSoundArray[i-this.tick] = silence;
 					s++;
 					if(s >= this.silence) {
 						t = 0;
@@ -62,10 +64,11 @@ public class Metronome {
 			}
 			msg = new Message();
 			msg.obj = ""+currentBeat;
-			if(bpm < 100)
-				mHandler.sendMessage(msg);
 			audioGenerator.writeSound(soundArray);
-			if(bpm >= 100)
+			if(bpm <= 120)
+				mHandler.sendMessage(msg);
+			audioGenerator.writeSound(silenceSoundArray);
+			if(bpm > 120)
 				mHandler.sendMessage(msg);
 			currentBeat++;
 			if(currentBeat > beat)
