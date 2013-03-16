@@ -17,7 +17,7 @@
             android:text="@string/bps"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/yellow"
-            android:textSize="50px"
+            android:textSize="30sp"
             android:gravity="center_vertical|center_horizontal" />
 
         <TextView
@@ -29,7 +29,7 @@
             android:text="@string/bps"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/yellow"
-            android:textSize="50px" />
+            android:textSize="30sp" />
 
         <TextView
             android:id="@+id/currentBeat"
@@ -40,7 +40,7 @@
             android:text="@string/one"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:textColor="@color/yellow"
-            android:textSize="50px" />
+            android:textSize="30sp" />
 
     </LinearLayout>
 
@@ -63,7 +63,7 @@
             android:layout_weight="1"
             android:onClick="onMinusClick"
             android:text="@string/minus"
-            android:textSize="50px" />
+            android:textSize="30sp" />
 
         <Button
             android:id="@+id/plus"
@@ -72,7 +72,7 @@
             android:layout_weight="1"
             android:onClick="onPlusClick"
             android:text="@string/plus"
-            android:textSize="50px" />
+            android:textSize="30sp" />
 
     </LinearLayout>
 
@@ -123,10 +123,10 @@
 
         <SeekBar
             android:id="@+id/volumebar"
-            android:layout_width="match_parent"
+            android:layout_width="0dip"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:padding="10px" />
+            android:padding="10dp" />
 
     </LinearLayout>
 
@@ -136,6 +136,6 @@
         android:layout_height="match_parent"
         android:onClick="onStartStopClick"
         android:text="@string/start"
-        android:textSize="100px" />
+        android:textSize="80dp" />
 
 </LinearLayout>
