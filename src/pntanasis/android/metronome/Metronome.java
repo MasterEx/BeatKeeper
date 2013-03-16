@@ -18,7 +18,8 @@ public class Metronome {
 	
 	private AudioGenerator audioGenerator = new AudioGenerator(8000);
 	private Handler mHandler;
-	private double[] soundArray;
+	private double[] soundTickArray;
+	private double[] soundTockArray;
 	private double[] silenceSoundArray;
 	private Message msg;
 	private int currentBeat = 1;
@@ -30,41 +31,30 @@ public class Metronome {
 	
 	public void calcSilence() {
 		silence = (int) (((60/bpm)*8000)-tick);		
-		soundArray = new double[this.tick];
+		soundTickArray = new double[this.tick];	
+		soundTockArray = new double[this.tick];
 		silenceSoundArray = new double[this.silence];
 		msg = new Message();
 		msg.obj = ""+currentBeat;
+		double[] tick = audioGenerator.getSineWave(this.tick, 8000, beatSound);
+		double[] tock = audioGenerator.getSineWave(this.tick, 8000, sound);
+		for(int i=0;i<this.tick;i++) {
+			soundTickArray[i] = tick[i];
+			soundTockArray[i] = tock[i];
+		}
+		for(int i=0;i<silence;i++)
+			silenceSoundArray[i] = 0;
 	}
 	
 	public void play() {
 		calcSilence();
-		double[] tick = audioGenerator.getSineWave(this.tick, 8000, beatSound);
-		double[] tock = audioGenerator.getSineWave(this.tick, 8000, sound);
-		double silence = 0;
-		int t = 0,s = 0,b = 0;
 		do {
-			for(int i=0;i<soundArray.length+silenceSoundArray.length&&play;i++) {
-				if(t<this.tick) {
-					if(b == 0)
-						soundArray[i] = tock[t];
-					else
-						soundArray[i] = tick[t];
-					t++;
-				} else {
-					silenceSoundArray[i-this.tick] = silence;
-					s++;
-					if(s >= this.silence) {
-						t = 0;
-						s = 0;
-						b++;
-						if(b > (this.beat-1))
-							b = 0;
-					}						
-				}
-			}
 			msg = new Message();
 			msg.obj = ""+currentBeat;
-			audioGenerator.writeSound(soundArray);
+			if(currentBeat == 1)
+				audioGenerator.writeSound(soundTockArray);
+			else
+				audioGenerator.writeSound(soundTickArray);				
 			if(bpm <= 120)
 				mHandler.sendMessage(msg);
 			audioGenerator.writeSound(silenceSoundArray);

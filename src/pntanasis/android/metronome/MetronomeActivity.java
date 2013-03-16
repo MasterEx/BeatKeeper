@@ -282,7 +282,7 @@ public class MetronomeActivity extends Activity {
 			metronome.setBeatSound(beatSound);
 			metronome.setSound(sound);
 
-			metronome.play();			
+			metronome.play();
 			
 			return null;			
 		}
