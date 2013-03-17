@@ -42,11 +42,11 @@ public class AudioGenerator {
     }
     
     public void createPlayer(){
+    	//FIXME sometimes audioTrack isn't initialized
         audioTrack = new AudioTrack(AudioManager.STREAM_MUSIC,
-                sampleRate, AudioFormat.CHANNEL_CONFIGURATION_MONO,
+                sampleRate, AudioFormat.CHANNEL_OUT_MONO,
                 AudioFormat.ENCODING_PCM_16BIT, sampleRate,
                 AudioTrack.MODE_STREAM);
-        
     	audioTrack.play();
     }
     
@@ -56,8 +56,15 @@ public class AudioGenerator {
     }
     
     public void destroyAudioTrack() {
+//    	audioTrack.flush();
     	audioTrack.stop();
     	audioTrack.release();
+//		try {
+//			Thread.sleep(100);
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//			e.printStackTrace();
+//		}
     }
     
 }

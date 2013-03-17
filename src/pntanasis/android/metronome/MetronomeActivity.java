@@ -1,10 +1,8 @@
 package pntanasis.android.metronome;
 
-import pntanasis.android.metronome.R;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
-import android.content.res.Resources;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.AsyncTask;
@@ -12,7 +10,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
@@ -67,7 +64,6 @@ public class MetronomeActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {    	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-        Log.e("PER", "ON CREATE");
         metroTask = new MetronomeAsyncTask();
         /* Set values and listeners to buttons and stuff */
         
@@ -118,20 +114,17 @@ public class MetronomeActivity extends Activity {
 	public synchronized void onStartStopClick(View view) {
     	Button button = (Button) view;
     	String buttonText = button.getText().toString();
-    	Log.e("PER","ON PLAY.STOP BUTTON LABEL: "+buttonText);
     	if(buttonText.equalsIgnoreCase("start")) {
-        	Log.e("PER","IF");
     		button.setText(R.string.stop);
     		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
     			metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[])null);
     		else
     			metroTask.execute();    		
     	} else {
-        	Log.e("PER","ELSE");
     		button.setText(R.string.start);    	
     		metroTask.stop();
     		metroTask = new MetronomeAsyncTask();
-    		System.gc();
+    		Runtime.getRuntime().gc();
     	}
     }
     
@@ -280,10 +273,9 @@ public class MetronomeActivity extends Activity {
     }
     
     public void onBackPressed() {
-		Log.e("PER","on back pressed");
     	metroTask.stop();
-    	metroTask = new MetronomeAsyncTask();
-		System.gc();
+//    	metroTask = new MetronomeAsyncTask();
+    	Runtime.getRuntime().gc();
 		audio.setStreamVolume(AudioManager.STREAM_MUSIC, initialVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     	finish();    
     }
@@ -292,13 +284,11 @@ public class MetronomeActivity extends Activity {
     	Metronome metronome;
     	
     	MetronomeAsyncTask() {
-    		Log.e("PER","AsyncTask constructor");
             mHandler = getHandler();
     		metronome = new Metronome(mHandler);
     	}
 
 		protected String doInBackground(Void... params) {
-			Log.e("PER","NEW ASYNC TASK");
 			metronome.setBeat(beats);
 			metronome.setNoteValue(noteValue);
 			metronome.setBpm(bpm);
