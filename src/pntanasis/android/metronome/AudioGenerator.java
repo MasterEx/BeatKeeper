@@ -56,15 +56,8 @@ public class AudioGenerator {
     }
     
     public void destroyAudioTrack() {
-//    	audioTrack.flush();
     	audioTrack.stop();
     	audioTrack.release();
-//		try {
-//			Thread.sleep(100);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
     }
     
 }
