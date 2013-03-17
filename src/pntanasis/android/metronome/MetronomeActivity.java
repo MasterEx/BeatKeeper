@@ -1,14 +1,18 @@
 package pntanasis.android.metronome;
 
 import pntanasis.android.metronome.R;
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Color;
 import android.media.AudioManager;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
@@ -40,25 +44,31 @@ public class MetronomeActivity extends Activity {
     private Button minusButton;
     private TextView currentBeat;
     
-    private Handler mHandler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-        	String message = (String)msg.obj;
-        	if(message.equals("1"))
-        		currentBeat.setTextColor(Color.GREEN);
-        	else
-        		currentBeat.setTextColor(getResources().getColor(R.color.yellow));
-        	currentBeat.setText(message);
-        }
-    };
+    private Handler mHandler;
+    
+    // have in mind that: http://stackoverflow.com/questions/11407943/this-handler-class-should-be-static-or-leaks-might-occur-incominghandler
+    // in this case we should be fine as no delayed messages are queued
+    private Handler getHandler() {
+    	return new Handler() {
+            @Override
+            public void handleMessage(Message msg) {
+            	String message = (String)msg.obj;
+            	if(message.equals("1"))
+            		currentBeat.setTextColor(Color.GREEN);
+            	else
+            		currentBeat.setTextColor(getResources().getColor(R.color.yellow));
+            	currentBeat.setText(message);
+            }
+        };
+    }
 	
     /** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {    	
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
-
-        metroTask = new MetronomeAsyncTask(mHandler);
+        Log.e("PER", "ON CREATE");
+        metroTask = new MetronomeAsyncTask();
         /* Set values and listeners to buttons and stuff */
         
         TextView bpmText = (TextView) findViewById(R.id.bps);
@@ -104,16 +114,24 @@ public class MetronomeActivity extends Activity {
         volumebar.setOnSeekBarChangeListener(volumeListener);
     }
     
-    public void onStartStopClick(View view) {
+    @TargetApi(Build.VERSION_CODES.HONEYCOMB)
+	public synchronized void onStartStopClick(View view) {
     	Button button = (Button) view;
     	String buttonText = button.getText().toString();
+    	Log.e("PER","ON PLAY.STOP BUTTON LABEL: "+buttonText);
     	if(buttonText.equalsIgnoreCase("start")) {
+        	Log.e("PER","IF");
     		button.setText(R.string.stop);
-    		metroTask.execute();    		
+    		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+    			metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[])null);
+    		else
+    			metroTask.execute();    		
     	} else {
+        	Log.e("PER","ELSE");
     		button.setText(R.string.start);    	
     		metroTask.stop();
-    		metroTask = new MetronomeAsyncTask(mHandler);
+    		metroTask = new MetronomeAsyncTask();
+    		System.gc();
     	}
     }
     
@@ -262,7 +280,10 @@ public class MetronomeActivity extends Activity {
     }
     
     public void onBackPressed() {
+		Log.e("PER","on back pressed");
     	metroTask.stop();
+    	metroTask = new MetronomeAsyncTask();
+		System.gc();
 		audio.setStreamVolume(AudioManager.STREAM_MUSIC, initialVolume, AudioManager.FLAG_REMOVE_SOUND_AND_VIBRATE);
     	finish();    
     }
@@ -270,12 +291,14 @@ public class MetronomeActivity extends Activity {
     private class MetronomeAsyncTask extends AsyncTask<Void,Void,String> {
     	Metronome metronome;
     	
-    	MetronomeAsyncTask(Handler mHandler) {
+    	MetronomeAsyncTask() {
+    		Log.e("PER","AsyncTask constructor");
+            mHandler = getHandler();
     		metronome = new Metronome(mHandler);
     	}
 
 		protected String doInBackground(Void... params) {
-			
+			Log.e("PER","NEW ASYNC TASK");
 			metronome.setBeat(beats);
 			metronome.setNoteValue(noteValue);
 			metronome.setBpm(bpm);
@@ -289,7 +312,7 @@ public class MetronomeActivity extends Activity {
 		
 		public void stop() {
 			metronome.stop();
-			metronome = new Metronome(mHandler);
+			metronome = null;
 		}
 		
 		public void setBpm(short bpm) {
